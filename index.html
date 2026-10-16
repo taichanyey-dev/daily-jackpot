@@ -66,6 +66,11 @@ button:disabled { opacity: .5; }
 <div class="card">
   <p>本日のデモ賞金</p>
   <div class="prize">100,000 PT</div>
+
+<p>次の抽選まで</p>
+<h2 id="countdown">計算中...</h2>
+<p class="note">毎日23:59に抽選</p>
+
   <p class="note">換金不可・実際の賞金ではありません</p>
 </div>
 
@@ -338,6 +343,48 @@ setInterval(() => {
     loadStats();
   }
 }, 30000);
+
+
+function updateCountdown() {
+  const now = new Date();
+
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric"
+  }).formatToParts(now);
+
+  const get = type =>
+    Number(parts.find(p => p.type === type).value);
+
+  let target = Date.UTC(
+    get("year"),
+    get("month") - 1,
+    get("day"),
+    14, 59, 0
+  );
+
+  if (target <= now.getTime()) {
+    target += 86400000;
+  }
+
+  const seconds = Math.ceil(
+    (target - now.getTime()) / 1000
+  );
+
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+
+  const pad = n => String(n).padStart(2, "0");
+
+  document.getElementById("countdown").textContent =
+    `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
+
+updateCountdown();
+setInterval(updateCountdown, 1000);
 
 init();
 </script>
