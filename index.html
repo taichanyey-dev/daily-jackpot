@@ -114,7 +114,15 @@ button:disabled { opacity: .5; }
 
     無料でデモ抽選券を1口獲得
   </button>
-  <button onclick="logout()" class="secondary">
+  
+<div class="card">
+  <h2>🏆 過去の当選履歴</h2>
+  <div id="drawHistory">
+    履歴を読み込み中...
+  </div>
+</div>
+
+<button onclick="logout()" class="secondary">
     ログアウト
   </button>
 </div>
@@ -183,6 +191,7 @@ tickets = data?.ticket_date === today
 
 loadDrawResult();
 loadStats();
+loadDrawHistory();
 } else {
 
     tickets = 0;
@@ -313,6 +322,36 @@ document.getElementById("winProbability").textContent =
 
   document.getElementById("totalTickets").textContent =
     (stats?.total_tickets ?? 0) + "口";
+}
+
+
+async function loadDrawHistory() {
+  const historyBox =
+    document.getElementById("drawHistory");
+
+  const { data, error } = await client.rpc(
+    "get_demo_draw_history"
+  );
+
+  if (error) {
+    historyBox.textContent =
+      "履歴を読み込めませんでした";
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    historyBox.textContent =
+      "まだ抽選履歴がありません";
+    return;
+  }
+
+  historyBox.style.whiteSpace = "pre-line";
+
+  historyBox.textContent = data.map(draw =>
+    "🏆 " + draw.draw_date +
+    "｜総抽選口数：" +
+    draw.total_entries + "口"
+  ).join("\n");
 }
 
 async function init() {
