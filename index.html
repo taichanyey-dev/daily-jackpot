@@ -95,6 +95,11 @@ button:disabled { opacity: .5; }
   <h3>本日の参加状況</h3>
   <p>参加人数</p>
   <h2 id="participants">読み込み中...</h2>
+
+<p>あなたの当選確率</p>
+<h2 id="winProbability">計算中...</h2>
+<p class="note">抽選前の参考確率です</p>
+
   <p>全体の抽選口数</p>
   <h2 id="totalTickets">読み込み中...</h2>
 </div>
@@ -285,6 +290,16 @@ async function loadStats() {
   }
 
   const stats = data?.[0];
+
+const total = Number(stats?.total_tickets ?? 0);
+
+const probability = total > 0
+  ? (tickets / total) * 100
+  : 0;
+
+document.getElementById("winProbability").textContent =
+  probability.toFixed(2) + "%";
+
 
   document.getElementById("participants").textContent =
     (stats?.participants ?? 0) + "人";
