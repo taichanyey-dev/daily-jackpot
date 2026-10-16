@@ -109,7 +109,9 @@ button:disabled { opacity: .5; }
   <h2 id="totalTickets">読み込み中...</h2>
 </div>
 
-  <button onclick="getTicket()">
+
+<button id="ticketButton" onclick="getTicket()">
+
     無料でデモ抽選券を1口獲得
   </button>
   <button onclick="logout()" class="secondary">
@@ -350,6 +352,26 @@ setInterval(() => {
 
 function updateCountdown() {
   const now = new Date();
+
+const japanTime = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Asia/Tokyo",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23"
+}).format(now);
+
+const ticketButton =
+  document.getElementById("ticketButton");
+
+if (ticketButton) {
+  const closed = japanTime >= "23:59";
+
+  ticketButton.disabled = closed;
+  ticketButton.textContent = closed
+    ? "本日の受付は終了しました"
+    : "無料でデモ抽選券を1口獲得";
+}
+
 
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Tokyo",
