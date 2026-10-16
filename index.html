@@ -90,6 +90,15 @@ button:disabled { opacity: .5; }
   <p id="username"></p>
   <p>あなたのデモ抽選口数</p>
   <h2 id="tickets">0口</h2>
+
+<div class="card">
+  <h3>本日の参加状況</h3>
+  <p>参加人数</p>
+  <h2 id="participants">読み込み中...</h2>
+  <p>全体の抽選口数</p>
+  <h2 id="totalTickets">読み込み中...</h2>
+</div>
+
   <button onclick="getTicket()">
     無料でデモ抽選券を1口獲得
   </button>
@@ -159,7 +168,11 @@ tickets = data?.ticket_date === today
 
     document.getElementById("tickets").textContent =
       tickets + "口";
- loadDrawResult(); } else {
+
+loadDrawResult();
+loadStats();
+} else {
+
     tickets = 0;
   }
 }
@@ -230,8 +243,7 @@ async function getTicket() {
   document.getElementById("tickets").textContent =
     tickets + "口";
 
-  showMessage("デモ抽選券を1口獲得！");
-}
+  showMessage("デモ抽選券を1口獲得！");loadStats();}
 
 
 
@@ -259,6 +271,26 @@ async function loadDrawResult() {
   } else {
     result.textContent = "今回はハズレ！また明日！";
   }
+}
+
+
+async function loadStats() {
+  const { data, error } = await client.rpc(
+    "get_today_demo_stats"
+  );
+
+  if (error) {
+    showMessage("参加状況の取得エラー：" + error.message);
+    return;
+  }
+
+  const stats = data?.[0];
+
+  document.getElementById("participants").textContent =
+    (stats?.participants ?? 0) + "人";
+
+  document.getElementById("totalTickets").textContent =
+    (stats?.total_tickets ?? 0) + "口";
 }
 
 async function init() {
