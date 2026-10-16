@@ -99,6 +99,12 @@ button:disabled { opacity: .5; }
 </div>
 
 <p id="message" class="note"></p>
+
+<div class="card" id="drawResult" style="display:none;">
+  <h2>🎰 本日の抽選結果</h2>
+  <p id="drawResultText">結果を確認中...</p>
+</div>
+
 <p class="note">
   試作品です。現金・広告・実際の抽選はありません。
   抽選口数はブラウザ内だけのデモデータです。
@@ -145,7 +151,7 @@ tickets = data?.tickets ?? 0;
 
     document.getElementById("tickets").textContent =
       tickets + "口";
-  } else {
+ loadDrawResult(); } else {
     tickets = 0;
   }
 }
@@ -219,6 +225,33 @@ async function getTicket() {
   showMessage("デモ抽選券を1口獲得！");
 }
 
+
+
+async function loadDrawResult() {
+  const box = document.getElementById("drawResult");
+  const result = document.getElementById("drawResultText");
+
+  if (!currentUser) {
+    box.style.display = "none";
+    return;
+  }
+
+  const { data, error } = await client.rpc(
+    "get_today_demo_result"
+  );
+
+  box.style.display = "block";
+
+  if (error) {
+    result.textContent = "結果を取得できませんでした";
+  } else if (!data || data.length === 0) {
+    result.textContent = "本日の抽選はまだです！";
+  } else if (data[0].is_winner) {
+    result.textContent = "🎉 おめでとう！本日の当選者です！";
+  } else {
+    result.textContent = "今回はハズレ！また明日！";
+  }
+}
 
 async function init() {
   if (SUPABASE_URL.startsWith("ここに") ||
