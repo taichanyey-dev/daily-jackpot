@@ -64,15 +64,22 @@
     ※試作品です。実際の賞金・広告・抽選はありません。
   </p>
 
-  <script>
-    let tickets = 0;
-    function getTicket() {
-      tickets++;
-      document.getElementById("tickets").textContent =
-        tickets + "口";
-      document.getElementById("message").textContent =
-        "デモ抽選券を獲得しました！";
-    }
-  </script>
+  
+<script>
+let tickets = Number(localStorage.getItem("tickets") || 0);
+
+document.getElementById("tickets").textContent = tickets + "口";
+
+function getTicket() {
+  tickets++;
+  localStorage.setItem("tickets", tickets);
+
+  document.getElementById("tickets").textContent = tickets + "口";
+
+  document.getElementById("message").textContent =
+    "デモ抽選券を獲得しました！";
+}
+</script>
+
 </body>
 </html>
