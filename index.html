@@ -1,85 +1,228 @@
 
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DAILY JACKPOT</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: #101426;
-      color: white;
-      font-family: sans-serif;
-      text-align: center;
-      padding: 24px 16px;
-    }
-    h1 { color: #ffd45c; }
-    .card {
-      background: #202740;
-      padding: 24px;
-      border-radius: 18px;
-      margin: 20px auto;
-      max-width: 400px;
-    }
-    .prize {
-      font-size: 42px;
-      color: #ffd45c;
-      font-weight: bold;
-    }
-    button {
-      background: #ffd45c;
-      border: none;
-      border-radius: 12px;
-      padding: 16px;
-      font-size: 18px;
-      font-weight: bold;
-      width: 100%;
-      cursor: pointer;
-    }
-    .note { color: #adb4c7; font-size: 13px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DAILY JACKPOT</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 25px 16px;
+  background: #101426;
+  color: white;
+  font-family: sans-serif;
+  text-align: center;
+}
+h1 { color: #ffd45c; }
+.card {
+  background: #202740;
+  border-radius: 18px;
+  padding: 24px;
+  margin: 20px auto;
+  max-width: 420px;
+}
+input {
+  width: 100%;
+  padding: 15px;
+  margin: 8px 0;
+  border: 1px solid #64708a;
+  border-radius: 10px;
+  font-size: 16px;
+}
+button {
+  width: 100%;
+  padding: 15px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 12px;
+  background: #ffd45c;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+button:disabled { opacity: .5; }
+.secondary { background: #8793ae; }
+.prize {
+  color: #ffd45c;
+  font-size: 36px;
+  font-weight: bold;
+}
+.note {
+  color: #bdc5d8;
+  font-size: 13px;
+}
+#app { display: none; }
+#message { overflow-wrap: anywhere; }
+</style>
 </head>
 <body>
-  <h1>DAILY JACKPOT</h1>
-  <p>毎日1人だけが当たる！</p>
 
-  <div class="card">
-    <p>本日のジャックポット</p>
-    <div class="prize">100,000 PT</div>
-    <p class="note">デモ用ポイント・換金不可</p>
-  </div>
+<h1>DAILY JACKPOT</h1>
+<p>毎日1人のジャックポット！</p>
 
-  <div class="card">
-    <p>あなたの抽選口数</p>
-    <h2 id="tickets">0口</h2>
-    <button onclick="getTicket()">
-      無料で1口獲得
-    </button>
-    <p id="message" class="note"></p>
-  </div>
+<div class="card">
+  <p>本日のデモ賞金</p>
+  <div class="prize">100,000 PT</div>
+  <p class="note">換金不可・実際の賞金ではありません</p>
+</div>
 
-  <p class="note">
-    ※試作品です。実際の賞金・広告・抽選はありません。
-  </p>
+<div class="card" id="auth">
+  <h2>会員登録・ログイン</h2>
+  <input id="email" type="email"
+    placeholder="メールアドレス" autocomplete="email">
+  <input id="password" type="password"
+    placeholder="パスワード（6文字以上）"
+    autocomplete="current-password">
+  <button id="signup" onclick="signup()">
+    新規会員登録
+  </button>
+  <button id="login" onclick="login()"
+    class="secondary">
+    ログイン
+  </button>
+</div>
 
-  
+<div class="card" id="app">
+  <h2>マイページ</h2>
+  <p id="username"></p>
+  <p>あなたのデモ抽選口数</p>
+  <h2 id="tickets">0口</h2>
+  <button onclick="getTicket()">
+    無料でデモ抽選券を1口獲得
+  </button>
+  <button onclick="logout()" class="secondary">
+    ログアウト
+  </button>
+</div>
+
+<p id="message" class="note"></p>
+<p class="note">
+  試作品です。現金・広告・実際の抽選はありません。
+  抽選口数はブラウザ内だけのデモデータです。
+</p>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-let tickets = Number(localStorage.getItem("tickets") || 0);
+const SUPABASE_URL = "https://egfztpubtlqsvxtkgaag.supabase.co";
+const SUPABASE_KEY = "sb_publishable_HCZmmCSr0eW6ZNxdVY5sww_vgLX0RKW";
 
-document.getElementById("tickets").textContent = tickets + "口";
+let client;
+let currentUser = null;
+let tickets = 0;
+
+const message = document.getElementById("message");
+
+function showMessage(text) {
+  message.textContent = text;
+}
+
+function showUser(user) {
+  currentUser = user;
+  document.getElementById("auth").style.display =
+    user ? "none" : "block";
+  document.getElementById("app").style.display =
+    user ? "block" : "none";
+
+  if (user) {
+    document.getElementById("username").textContent =
+      user.email || "ログイン中";
+    tickets = Number(localStorage.getItem(
+      "demo_tickets_" + user.id
+    ) || 0);
+    document.getElementById("tickets").textContent =
+      tickets + "口";
+  } else {
+    tickets = 0;
+  }
+}
+
+async function signup() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  if (!email || password.length < 6) {
+    showMessage("メールアドレスと6文字以上のパスワードを入力してな");
+    return;
+  }
+
+  const {data, error} = await client.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: window.location.origin +
+        window.location.pathname
+    }
+  });
+
+  if (error) {
+    showMessage("登録エラー：" + error.message);
+  } else if (data.session) {
+    showMessage("登録できたで！");
+  } else {
+    showMessage(
+      "確認メールを送ったで！メールのリンクを開いてな。"
+    );
+  }
+}
+
+async function login() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  const {error} = await client.auth.signInWithPassword({
+    email, password
+  });
+
+  showMessage(error ?
+    "ログインエラー：" + error.message :
+    "ログイン成功！");
+}
+
+async function logout() {
+  const {error} = await client.auth.signOut();
+  if (error) showMessage(error.message);
+  else showMessage("ログアウトしたで！");
+}
 
 function getTicket() {
+  if (!currentUser) return;
   tickets++;
-  localStorage.setItem("tickets", tickets);
-
-  document.getElementById("tickets").textContent = tickets + "口";
-
-  document.getElementById("message").textContent =
-    "デモ抽選券を獲得しました！";
+  localStorage.setItem(
+    "demo_tickets_" + currentUser.id, tickets
+  );
+  document.getElementById("tickets").textContent =
+    tickets + "口";
+  showMessage("デモ抽選券を1口獲得！");
 }
-</script>
 
+async function init() {
+  if (SUPABASE_URL.startsWith("ここに") ||
+      SUPABASE_KEY.startsWith("ここに")) {
+    showMessage("Supabaseの接続情報を入力してな");
+    return;
+  }
+
+  try {
+    client = window.supabase.createClient(
+      SUPABASE_URL, SUPABASE_KEY
+    );
+
+    client.auth.onAuthStateChange((_event, session) => {
+      showUser(session?.user || null);
+    });
+
+    const {data, error} = await client.auth.getSession();
+    if (error) throw error;
+    showUser(data.session?.user || null);
+  } catch (error) {
+    showMessage("接続エラー：" + error.message);
+  }
+}
+
+init();
+</script>
 </body>
 </html>
