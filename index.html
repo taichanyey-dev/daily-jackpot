@@ -332,6 +332,13 @@ async function init() {
   }
 }
 
+
+setInterval(() => {
+  if (currentUser) {
+    loadStats();
+  }
+}, 30000);
+
 init();
 </script>
 </body>
