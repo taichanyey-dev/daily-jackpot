@@ -338,11 +338,14 @@ async function init() {
 }
 
 
+
 setInterval(() => {
   if (currentUser) {
     loadStats();
+    loadDrawResult();
   }
 }, 30000);
+
 
 
 function updateCountdown() {
