@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DAILY JACKPOT</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #101426;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 24px 16px;
+    }
+    h1 { color: #ffd45c; }
+    .card {
+      background: #202740;
+      padding: 24px;
+      border-radius: 18px;
+      margin: 20px auto;
+      max-width: 400px;
+    }
+    .prize {
+      font-size: 42px;
+      color: #ffd45c;
+      font-weight: bold;
+    }
+    button {
+      background: #ffd45c;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 18px;
+      font-weight: bold;
+      width: 100%;
+      cursor: pointer;
+    }
+    .note { color: #adb4c7; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>DAILY JACKPOT</h1>
+  <p>毎日1人だけが当たる！</p>
+
+  <div class="card">
+    <p>本日のジャックポット</p>
+    <div class="prize">100,000 PT</div>
+    <p class="note">デモ用ポイント・換金不可</p>
+  </div>
+
+  <div class="card">
+    <p>あなたの抽選口数</p>
+    <h2 id="tickets">0口</h2>
+    <button onclick="getTicket()">
+      無料で1口獲得
+    </button>
+    <p id="message" class="note"></p>
+  </div>
+
+  <p class="note">
+    ※試作品です。実際の賞金・広告・抽選はありません。
+  </p>
+
+  <script>
+    let tickets = 0;
+    function getTicket() {
+      tickets++;
+      document.getElementById("tickets").textContent =
+        tickets + "口";
+      document.getElementById("message").textContent =
+        "デモ抽選券を獲得しました！";
+    }
+  </script>
+</body>
+</html>
