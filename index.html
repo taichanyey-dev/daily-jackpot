@@ -119,7 +119,7 @@ function showMessage(text) {
   message.textContent = text;
 }
 
-function showUser(user) {
+async function showUser(user) {
   currentUser = user;
   document.getElementById("auth").style.display =
     user ? "none" : "block";
@@ -129,9 +129,20 @@ function showUser(user) {
   if (user) {
     document.getElementById("username").textContent =
       user.email || "ログイン中";
-    tickets = Number(localStorage.getItem(
-      "demo_tickets_" + user.id
-    ) || 0);
+    
+const { data, error } = await client
+  .from("demo_tickets")
+  .select("tickets")
+  .eq("user_id", user.id)
+  .maybeSingle();
+
+if (error) {
+  showMessage("読み込みエラー：" + error.message);
+  return;
+}
+
+tickets = data?.tickets ?? 0;
+
     document.getElementById("tickets").textContent =
       tickets + "口";
   } else {
@@ -187,16 +198,27 @@ async function logout() {
   else showMessage("ログアウトしたで！");
 }
 
-function getTicket() {
+
+async function getTicket() {
   if (!currentUser) return;
-  tickets++;
-  localStorage.setItem(
-    "demo_tickets_" + currentUser.id, tickets
+
+  const { data, error } = await client.rpc(
+    "claim_demo_ticket"
   );
+
+  if (error) {
+    showMessage("エラー：" + error.message);
+    return;
+  }
+
+  tickets = data;
+
   document.getElementById("tickets").textContent =
     tickets + "口";
+
   showMessage("デモ抽選券を1口獲得！");
 }
+
 
 async function init() {
   if (SUPABASE_URL.startsWith("ここに") ||
