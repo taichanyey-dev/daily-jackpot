@@ -302,6 +302,16 @@ updateCountdown();
   const status = document.getElementById("adStatus");
 
   try {
+
+const { error: startError } = await client.rpc(
+  "start_demo_ad_session"
+);
+
+if (startError) {
+  showMessage("デモ開始エラー：" + startError.message);
+  return;
+}
+
     for (let i = 15; i > 0; i--) {
       status.textContent =
         "📺 デモ広告視聴中...残り" + i + "秒";
