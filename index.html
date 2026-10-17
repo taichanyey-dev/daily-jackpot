@@ -269,24 +269,44 @@ async function logout() {
 }
 
 
+
+let ticketRequestPending = false;
+
+
 async function getTicket() {
-  if (!currentUser) return;
+  if (!currentUser || ticketRequestPending) return;
 
-  const { data, error } = await client.rpc(
-    "claim_demo_ticket"
-  );
+  ticketRequestPending = true;
+updateCountdown();
 
-  if (error) {
-    showMessage("エラー：" + error.message);
-    return;
-  }
+  try {
+    const { data, error } = await client.rpc(
+      "claim_demo_ticket"
+    );
 
-  tickets = data;
+    if (error) {
+      showMessage("エラー：" + error.message);
+      return;
+    }
 
-  document.getElementById("tickets").textContent =
-    tickets + "口";
+    tickets = data;
 
-  showMessage("デモ抽選券を1口獲得！");loadStats();}
+    document.getElementById("tickets").textContent =
+      tickets + "口";
+
+    showMessage("デモ抽選券を1口獲得！");
+    loadStats();
+
+  } catch (error) {
+    showMessage("通信エラー：" + error.message);
+  
+} finally {
+  ticketRequestPending = false;
+  updateCountdown();
+}
+
+}
+
 
 
 
@@ -439,10 +459,16 @@ const ticketButton =
 if (ticketButton) {
   const closed = japanTime >= "23:59";
 
-  ticketButton.disabled = closed;
-  ticketButton.textContent = closed
-    ? "本日の受付は終了しました"
+  
+ticketButton.disabled =
+  closed || ticketRequestPending;
+
+ticketButton.textContent = closed
+  ? "本日の受付は終了しました"
+  : ticketRequestPending
+    ? "処理中..."
     : "無料でデモ抽選券を1口獲得";
+
 }
 
 
