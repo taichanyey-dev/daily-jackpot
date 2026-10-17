@@ -116,6 +116,13 @@ button:disabled { opacity: .5; }
   <p>あなたのデモ抽選口数</p>
   <h2 id="tickets">0口</h2>
 
+<p class="note">🎟️ 本日の獲得上限：100口</p>
+
+<p id="remainingTickets" class="note">
+  残り獲得可能：計算中...
+</p>
+
+
 <div class="card">
   <h3>本日の参加状況</h3>
   <p>参加人数</p>
@@ -215,6 +222,10 @@ tickets = data?.ticket_date === today
 
     document.getElementById("tickets").textContent =
       tickets + "口";
+
+document.getElementById("remainingTickets").textContent =
+  "残り獲得可能：" + Math.max(0, 100 - tickets) + "口";
+
 
 loadDrawResult();
 loadStats();
@@ -336,8 +347,15 @@ updateCountdown();
     document.getElementById("tickets").textContent =
       tickets + "口";
 
+document.getElementById("remainingTickets").textContent =
+  "残り獲得可能：" + Math.max(0, 100 - tickets) + "口";
+
+
     showMessage("デモ抽選券を1口獲得！");
     loadStats();
+
+updateCountdown();
+
 
   } catch (error) {
     showMessage("通信エラー：" + error.message);
@@ -485,8 +503,35 @@ setInterval(() => {
 
 
 
+
+let lastTicketDate = new Date().toLocaleDateString(
+  "sv-SE",
+  { timeZone: "Asia/Tokyo" }
+);
+
 function updateCountdown() {
   const now = new Date();
+
+const todayJst = now.toLocaleDateString("sv-SE", {
+  timeZone: "Asia/Tokyo"
+});
+
+if (todayJst !== lastTicketDate) {
+  lastTicketDate = todayJst;
+
+  tickets = 0;
+
+  document.getElementById("tickets").textContent =
+    "0口";
+
+  document.getElementById("remainingTickets").textContent =
+    "残り獲得可能：100口";
+
+  if (currentUser) {
+    showUser(currentUser);
+  }
+}
+
 
 const japanTime = new Intl.DateTimeFormat("en-GB", {
   timeZone: "Asia/Tokyo",
@@ -503,10 +548,10 @@ if (ticketButton) {
 
   
 
+
 ticketButton.disabled =
-  closed || ticketRequestPending || demoAdRunning;
-
-
+  closed || ticketRequestPending ||
+  demoAdRunning || tickets >= 100;
 
 ticketButton.textContent = closed
   ? "抽選中..."
@@ -514,7 +559,10 @@ ticketButton.textContent = closed
     ? "📺 デモ広告視聴中..."
     : ticketRequestPending
       ? "処理中..."
-      : "無料でデモ抽選券を1口獲得";
+      : tickets >= 100
+        ? "🎟️ 本日の上限100口に達しました"
+        : "無料でデモ抽選券を1口獲得";
+
 
 
 }
