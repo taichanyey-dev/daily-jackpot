@@ -56,6 +56,26 @@ button:disabled { opacity: .5; }
 }
 #app { display: none; }
 #message { overflow-wrap: anywhere; }
+
+.history-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.history-item {
+  background: #303b5c;
+  border: 1px solid #ffd45c;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: left;
+}
+
+.history-item strong {
+  color: #ffd45c;
+  font-size: 17px;
+}
+
 </style>
 </head>
 <body>
@@ -117,7 +137,9 @@ button:disabled { opacity: .5; }
   
 <div class="card">
   <h2>🏆 過去の当選履歴</h2>
-  <div id="drawHistory">
+
+<div id="drawHistory" class="history-list">
+
     履歴を読み込み中...
   </div>
 </div>
@@ -345,13 +367,25 @@ async function loadDrawHistory() {
     return;
   }
 
-  historyBox.style.whiteSpace = "pre-line";
+ 
+historyBox.replaceChildren();
 
-  historyBox.textContent = data.map(draw =>
-    "🏆 " + draw.draw_date +
-    "｜総抽選口数：" +
-    draw.total_entries + "口"
-  ).join("\n");
+data.forEach(draw => {
+  const card = document.createElement("div");
+  card.className = "history-item";
+
+  const title = document.createElement("strong");
+  title.textContent = "🏆 " + draw.draw_date;
+
+  const details = document.createElement("p");
+  details.textContent =
+    "総抽選口数：" + draw.total_entries + "口";
+
+  card.appendChild(title);
+  card.appendChild(details);
+  historyBox.appendChild(card);
+});
+
 }
 
 async function init() {
