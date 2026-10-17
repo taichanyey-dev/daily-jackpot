@@ -136,6 +136,9 @@ button:disabled { opacity: .5; }
 
     無料でデモ抽選券を1口獲得
   </button>
+
+<p id="adStatus" class="note"></p>
+
   
 <div class="card">
   <h2>🏆 過去の当選履歴</h2>
@@ -274,6 +277,43 @@ async function logout() {
 
 let ticketRequestPending = false;
 
+
+
+let demoAdRunning = false;
+
+async function startDemoAd() {
+  if (demoAdRunning || ticketRequestPending ||
+      !currentUser) return;
+
+  demoAdRunning = true;
+updateCountdown();
+
+  const status = document.getElementById("adStatus");
+
+  try {
+    for (let i = 15; i > 0; i--) {
+      status.textContent =
+        "📺 デモ広告視聴中...残り" + i + "秒";
+
+      await new Promise(resolve =>
+        setTimeout(resolve, 1000)
+      );
+    }
+
+    status.textContent =
+      "✅ デモ視聴完了！抽選券を申請中...";
+
+    await getTicket();
+
+    status.textContent =
+      "デモ終了！抽選券の獲得結果を確認してな。";
+  
+} finally {
+  demoAdRunning = false;
+  updateCountdown();
+}
+
+}
 
 async function getTicket() {
   if (!currentUser || ticketRequestPending) return;
@@ -462,14 +502,20 @@ if (ticketButton) {
   const closed = japanTime >= "23:59";
 
   
+
 ticketButton.disabled =
-  closed || ticketRequestPending;
+  closed || ticketRequestPending || demoAdRunning;
+
+
 
 ticketButton.textContent = closed
   ? "抽選中..."
-  : ticketRequestPending
-    ? "処理中..."
-    : "無料でデモ抽選券を1口獲得";
+  : demoAdRunning
+    ? "📺 デモ広告視聴中..."
+    : ticketRequestPending
+      ? "処理中..."
+      : "無料でデモ抽選券を1口獲得";
+
 
 }
 
